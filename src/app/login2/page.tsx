@@ -7,11 +7,12 @@ import { EmailIcon, LockIcon } from '@chakra-ui/icons';
 import Link from 'next/link';
 
 
-function Login() {
+function Login2() {
 
   const { register, handleSubmit, formState: { errors }, watch, } = useForm();
 
 const fetchApi = useCallback((formData: any) => {
+    console.log('FETCH API')
     async function login() {
       try {
         await instance.post('/auth/login', formData);
@@ -93,8 +94,21 @@ const fetchApi = useCallback((formData: any) => {
           </Button>
         </Flex>
       </FormControl>
+       <Button
+            type="submit"
+            h="40px"
+            loadingText="Submitting"
+            colorScheme="teal"
+            variant="outline"
+            onClick={() => {
+              console.log('TESTE')
+              handleSubmit(fetchApi)()
+            }}
+          >
+            TESTE
+          </Button>
     </Flex>
     )
   }
 
-  export default Login
+  export default Login2
