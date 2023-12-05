@@ -14,7 +14,8 @@ function Login() {
 const fetchApi = useCallback((formData: any) => {
     async function login() {
       try {
-        await instance.post('/auth/login', formData);
+        const resp = await instance.post('/auth/login', formData);
+        window.localStorage.setItem("@wesap:token", resp.data.accessToken);
       } catch (error) {
         console.log(error)
       }
