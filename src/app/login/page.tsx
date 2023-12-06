@@ -1,27 +1,38 @@
 "use client";
-import { Button, Flex, FormControl, Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
-import React, { useCallback } from 'react'
-import { useForm } from 'react-hook-form';
+import {
+  Button,
+  Flex,
+  FormControl,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Text,
+} from "@chakra-ui/react";
+import React, { useCallback } from "react";
+import { useForm } from "react-hook-form";
 import instance from "../services/axios/instance";
-import { EmailIcon, LockIcon } from '@chakra-ui/icons';
-import Link from 'next/link';
+import { EmailIcon, LockIcon } from "@chakra-ui/icons";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 
 function Login() {
+  const { register, handleSubmit } = useForm();
+  const router = useRouter()
 
-  const { register, handleSubmit, formState: { errors }, watch, } = useForm();
-
-const fetchApi = useCallback((formData: any) => {
+  const fetchApi = useCallback((formData: any) => {
     async function login() {
       try {
-        const resp = await instance.post('/auth/login', formData);
+        const resp = await instance.post("/auth/login", formData);
         window.localStorage.setItem("@wesap:token", resp.data.accessToken);
-      } catch (error) {
-        console.log(error)
+        router.push('/dashboard')
+        toast.success("Login realizado com sucesso");
+      } catch (e) {
+        toast.error("OPS, algo deu errado, tente novamente");
       }
     }
     login();
-  }, []);
+  }, [router]);
 
   return (
     <Flex
@@ -38,15 +49,14 @@ const fetchApi = useCallback((formData: any) => {
         alignItems={"center"}
         w={500}
         h={650}
-        // onSubmit={handleSubmit(fetchApi)}
       >
-        <h1>Faça o seu login</h1>
+        <Text fontSize={"4xl"}>Faça o seu login</Text>
         <InputGroup display="flex" alignItems="center" h="auto">
           <EmailIcon color="teal" h={35} w="10%" />
           <InputLeftElement
             pointerEvents="none"
             color="gray.300"
-            fontSize="1.2em"
+            fontSize="1.2em"  
           />
           <Input
             type="tel"
@@ -54,10 +64,10 @@ const fetchApi = useCallback((formData: any) => {
             id="email"
             h="45px"
             w="90%"
+            errorBorderColor='red.300'
             {...register("email")}
           />
         </InputGroup>
-
         <InputGroup display="flex" alignItems="center" h="auto">
           <LockIcon color="teal" h={35} w="10%" />
           <InputLeftElement
@@ -74,20 +84,24 @@ const fetchApi = useCallback((formData: any) => {
             {...register("password")}
           />
         </InputGroup>
-
         <Flex w="90%" justify="space-between" margin="0 auto">
-          <Button h="40px" colorScheme="teal" variant="solid">
-            <Link href='/signup' />Back
+          <Button
+            fontSize={"2xl"}
+            h="40px"
+            colorScheme="teal"
+            variant="solid"
+            onClick={() => router.push('/signup')}
+          >
+            Back
           </Button>
           <Button
-            type="submit"
+            fontSize={"2xl"}
             h="40px"
             loadingText="Submitting"
             colorScheme="teal"
             variant="outline"
-             onClick={() => {
-              console.log('TESTE')
-              handleSubmit(fetchApi)()
+            onClick={() => {
+              handleSubmit(fetchApi)();
             }}
           >
             Submit
@@ -95,7 +109,7 @@ const fetchApi = useCallback((formData: any) => {
         </Flex>
       </FormControl>
     </Flex>
-    )
-  }
+  );
+}
 
-  export default Login
+export default Login;

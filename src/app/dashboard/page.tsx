@@ -1,8 +1,7 @@
 "use client";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {  useContext, useEffect, useState } from "react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Button,
   Flex,
   FormControl,
@@ -20,7 +19,7 @@ const PageDashboard = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const socket = useContext(SocketContext);
 
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, setValue } = useForm<{ about: string }>();
 
   useEffect(() => {
     socket.auth = {
@@ -29,8 +28,7 @@ const PageDashboard = () => {
     socket.connect();
 
     socket.on("createMessage", (data: IMessage) => {
-      console.log(data);
-      setMessages([...messages, data]);
+      setMessages([data, ...messages]);
     });
 
     return () => {
@@ -38,11 +36,9 @@ const PageDashboard = () => {
     };
   }, [socket, messages]);
 
-  const token = localStorage.getItem("@wesap:token");
- 
-  const sendMessage = () => {
-    // funcao pra mandar msg
-    socket.emit("createMessage", { about: 'message' });
+  const sendMessage = (data: { about: string }) => {
+    socket.emit("createMessage", data);
+    setValue('about', '')
   };
 
   useEffect(() => {
@@ -63,17 +59,6 @@ const PageDashboard = () => {
     loadMessages();
   }, [setMessages]);
 
-  const fetchApi = useCallback((formData: any) => {
-    async function messageChat() {
-      try {
-        await instance.post("/messages", formData);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    messageChat();
-  }, []);
-
   return (
     <Flex h="100vh" w="100vw" direction={"column"} alignItems={"center"}>
       <Flex
@@ -84,14 +69,13 @@ const PageDashboard = () => {
         justifyContent="space-evenly"
         alignItems="center"
       >
-        <Text fontSize="2xl" color={"white"} fontWeight="bold">
-          Chat Geral
+        <Text fontSize="" color={"white"} fontWeight="bold">
+          WeSap
         </Text>
         <Text fontSize="2xl" color={"white"} fontWeight="bold">
-          Bem vindo ao chat
+          Bem vindo ao chat {localStorage.getItem("name")}
         </Text>
       </Flex>
-
       <Flex
         w={"90%"}
         h={"90%"}
@@ -99,25 +83,32 @@ const PageDashboard = () => {
         direction={"column"}
         alignItems={"center"}
       >
-        <Flex h={"90%"} w={"70%"} direction={"column"} gap={"20px"}>
+        <Flex
+          h={"90%"}
+          w={"70%"}
+          direction={"column"}
+          gap={"20px"}
+          padding={"10px"}
+          overflowY="scroll"
+          flexDirection="column-reverse"
+        >
           {messages.map((message: IMessage) => {
             return (
               <Flex
                 key={message.id}
                 direction={"column"}
                 border="2px solid #dedede"
-                bg={token ? '#f1f1f1' : '#ccc'}
+                bg="#f1f1f1"
                 borderRadius={"5px"}
                 padding={"10px"}
-                margin="10px 0"
+                margin="0 0"
               >
-                <Text fontSize={"4xl"}>{message.user.name}</Text>
-                <Text fontSize={"3xl"}>{message.about}</Text>
+                <Text fontSize={"lg"}>{message.user.name}</Text>
+                <Text fontSize={"md"}>{message.about}</Text>
               </Flex>
             );
           })}
         </Flex>
-
         <FormControl display={"flex"} w={"50%"} h={"10%"} alignItems={"center"}>
           <InputGroup display="flex" alignItems="center" h="auto">
             <InputLeftElement
@@ -132,6 +123,7 @@ const PageDashboard = () => {
               type="about"
               h="45px"
               w="100%"
+              marginRight="20px"
               {...register("about")}
             />
           </InputGroup>
@@ -141,9 +133,8 @@ const PageDashboard = () => {
             h={"50px"}
             w={"50px"}
             onClick={() => {
-              handleSubmit(sendMessage);
+              handleSubmit(sendMessage)();
             }}
-            // onClick={sendMessage}
           >
             <ArrowRightIcon color="white" />
           </Button>
