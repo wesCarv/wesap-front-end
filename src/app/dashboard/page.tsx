@@ -1,7 +1,8 @@
 "use client";
-import {  useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import {
+  Box,
   Button,
   Flex,
   FormControl,
@@ -9,17 +10,28 @@ import {
   InputGroup,
   InputLeftElement,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { SocketContext } from "../context/socket";
 import { useForm } from "react-hook-form";
 import { IMessage } from "../interfaces";
 import instance from "../services/axios/instance";
+import { useRouter } from "next/navigation";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { messagesSchema } from "../schemas/schemas";
 
 const PageDashboard = () => {
   const [messages, setMessages] = useState<IMessage[]>([]);
   const socket = useContext(SocketContext);
+  const toast = useToast();
 
-  const { register, handleSubmit, setValue } = useForm<{ about: string }>();
+  const { register, handleSubmit, setValue , formState: {errors}} = useForm<{ about: string }>({
+    resolver: yupResolver(messagesSchema),
+  });
+
+  const router = useRouter();
+
+  
 
   useEffect(() => {
     socket.auth = {
@@ -38,8 +50,14 @@ const PageDashboard = () => {
 
   const sendMessage = (data: { about: string }) => {
     socket.emit("createMessage", data);
-    setValue('about', '')
+    setValue("about", "");
   };
+
+  const handleKeyDown = (e: any) => {
+    if (e.key === 'Enter') {
+      handleSubmit(sendMessage)()
+    }
+  } 
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -51,13 +69,16 @@ const PageDashboard = () => {
             )}`,
           },
         });
+
         setMessages(message.data);
       } catch (error) {
-        console.log(error);
+        
       }
     };
     loadMessages();
-  }, [setMessages]);
+  }, [setMessages, toast]);
+
+ 
 
   return (
     <Flex h="100vh" w="100vw" direction={"column"} alignItems={"center"}>
@@ -65,16 +86,26 @@ const PageDashboard = () => {
         width="100%"
         h="10%"
         bg="teal"
-        direction="column"
         justifyContent="space-evenly"
         alignItems="center"
       >
-        <Text fontSize="" color={"white"} fontWeight="bold">
-          WeSap
-        </Text>
-        <Text fontSize="2xl" color={"white"} fontWeight="bold">
-          Bem vindo ao chat {localStorage.getItem("name")}
-        </Text>
+        <Box>
+          <Text fontSize="" color={"white"} fontWeight="bold">
+            WeSap
+          </Text>
+          <Text fontSize="2xl" color={"white"} fontWeight="bold">
+            Bem vindo ao chat, {localStorage.getItem("name-user")}
+          </Text>
+        </Box>
+        <Button
+          color={"teal"}
+          onClick={() => {
+            router.push("/login");
+            window.localStorage.clear();
+          }}
+        >
+          Back
+        </Button>
       </Flex>
       <Flex
         w={"90%"}
@@ -124,9 +155,11 @@ const PageDashboard = () => {
               h="45px"
               w="100%"
               marginRight="20px"
+              onKeyDown={handleKeyDown}
               {...register("about")}
             />
           </InputGroup>
+            <Text fontSize={'xl'} color={'red.700'}>{errors.about?.message}</Text>
           <Button
             borderRadius={"50%"}
             bg="teal"
@@ -135,6 +168,7 @@ const PageDashboard = () => {
             onClick={() => {
               handleSubmit(sendMessage)();
             }}
+            
           >
             <ArrowRightIcon color="white" />
           </Button>

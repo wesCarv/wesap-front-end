@@ -11,4 +11,7 @@ const signupSchema = yup.object({
   password: yup.string().required("Senha é obrigatoria"),
 });
 
-export { loginSchema, signupSchema };
+const messagesSchema = yup.object({
+  about: yup.string().required("O campo mensagem é obrigatório")
+})
+export { loginSchema, signupSchema, messagesSchema };

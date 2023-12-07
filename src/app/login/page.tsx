@@ -7,6 +7,7 @@ import {
   InputGroup,
   InputLeftElement,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -14,25 +15,43 @@ import instance from "../services/axios/instance";
 import { EmailIcon, LockIcon } from "@chakra-ui/icons";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { loginSchema } from "../schemas/schemas";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 
 function Login() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, formState: {errors} } = useForm({
+    resolver: yupResolver(loginSchema),
+  });
   const router = useRouter()
+  const toast = useToast()
 
   const fetchApi = useCallback((formData: any) => {
     async function login() {
       try {
         const resp = await instance.post("/auth/login", formData);
         window.localStorage.setItem("@wesap:token", resp.data.accessToken);
+        window.localStorage.setItem("name-user", resp.data.user.name)
         router.push('/dashboard')
-        toast.success("Login realizado com sucesso");
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Você será redirecionado em alguns instantes",
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        })
       } catch (e) {
-        toast.error("OPS, algo deu errado, tente novamente");
+        toast({
+          title: "OPS, algo deu errado",
+          description: "Verifique seu email e senha e tente novamente",
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        })
       }
     }
     login();
-  }, [router]);
+  }, [router, toast]);
 
   return (
     <Flex
@@ -68,6 +87,7 @@ function Login() {
             {...register("email")}
           />
         </InputGroup>
+          <Text fontSize={'xl'} color={'red.700'}>{errors.email?.message}</Text>
         <InputGroup display="flex" alignItems="center" h="auto">
           <LockIcon color="teal" h={35} w="10%" />
           <InputLeftElement
@@ -83,16 +103,27 @@ function Login() {
             w="90%"
             {...register("password")}
           />
+          
         </InputGroup>
+        <Text fontSize={'xl'} color={'red.700'}>{errors.password?.message}</Text>
         <Flex w="90%" justify="space-between" margin="0 auto">
           <Button
             fontSize={"2xl"}
             h="40px"
             colorScheme="teal"
             variant="solid"
-            onClick={() => router.push('/signup')}
+            onClick={() => {
+              router.push('/signup')
+              toast({
+                title: "Você está sendo direcionado a pagina de cadastro",
+                description: "Você será redirecionado em alguns instantes",
+                status: 'loading',
+                duration: 2000,
+                isClosable: true,
+              })
+            }}
           >
-            Back
+            SignUp
           </Button>
           <Button
             fontSize={"2xl"}
