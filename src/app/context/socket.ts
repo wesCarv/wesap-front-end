@@ -1,9 +1,8 @@
 import React from "react";
 import { io } from "socket.io-client";
 
-// const SOCKET_URL = "http://localhost:3003";
 
-export const socket = io("http://localhost:3003", {
+export const socket = io("https://wesap-back-end-production.up.railway.app", {
   autoConnect: false
 
 });
