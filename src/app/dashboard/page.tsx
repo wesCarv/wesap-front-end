@@ -25,19 +25,24 @@ const PageDashboard = () => {
   const socket = useContext(SocketContext);
   const toast = useToast();
 
-  const { register, handleSubmit, setValue , formState: {errors}} = useForm<{ about: string }>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<{ about: string }>({
     resolver: yupResolver(messagesSchema),
   });
 
   const router = useRouter();
 
-  
-
   useEffect(() => {
-    socket.auth = {
-      token: `Bearer ${window.localStorage.getItem("@wesap:token")}`,
-    };
-    socket.connect();
+    if (typeof window !== "undefined") {
+      socket.auth = {
+        token: `Bearer ${window.localStorage.getItem("@wesap:token")}`,
+      };
+      socket.connect();
+    }
 
     socket.on("createMessage", (data: IMessage) => {
       setMessages([data, ...messages]);
@@ -54,31 +59,29 @@ const PageDashboard = () => {
   };
 
   const handleKeyDown = (e: any) => {
-    if (e.key === 'Enter') {
-      handleSubmit(sendMessage)()
+    if (e.key === "Enter") {
+      handleSubmit(sendMessage)();
     }
-  } 
+  };
 
   useEffect(() => {
     const loadMessages = async () => {
       try {
-        const message = await instance.get("/messages", {
-          headers: {
-            Authorization: `Bearer ${window.localStorage.getItem(
-              "@wesap:token"
-            )}`,
-          },
-        });
+        if (typeof window !== "undefined") {
+          const message = await instance.get("/messages", {
+            headers: {
+              Authorization: `Bearer ${window.localStorage.getItem(
+                "@wesap:token"
+              )}`,
+            },
+          });
 
-        setMessages(message.data);
-      } catch (error) {
-        
-      }
+          setMessages(message.data);
+        }
+      } catch (error) {}
     };
     loadMessages();
   }, [setMessages, toast]);
-
- 
 
   return (
     <Flex h="100vh" w="100vw" direction={"column"} alignItems={"center"}>
@@ -94,14 +97,17 @@ const PageDashboard = () => {
             WeSap
           </Text>
           <Text fontSize="2xl" color={"white"} fontWeight="bold">
-            Bem vindo ao chat, {localStorage.getItem("name-user")}
+            {typeof window !== "undefined" &&
+              `Bem vindo ao chat, ${window.localStorage.getItem("name-user")}`}
           </Text>
         </Box>
         <Button
           color={"teal"}
           onClick={() => {
             router.push("/login");
-            window.localStorage.clear();
+            if (typeof window !== "undefined") {
+              window.localStorage.clear();
+            }
           }}
         >
           Back
@@ -159,7 +165,9 @@ const PageDashboard = () => {
               {...register("about")}
             />
           </InputGroup>
-            <Text fontSize={'xl'} color={'red.700'}>{errors.about?.message}</Text>
+          <Text fontSize={"xl"} color={"red.700"}>
+            {errors.about?.message}
+          </Text>
           <Button
             borderRadius={"50%"}
             bg="teal"
@@ -168,7 +176,6 @@ const PageDashboard = () => {
             onClick={() => {
               handleSubmit(sendMessage)();
             }}
-            
           >
             <ArrowRightIcon color="white" />
           </Button>
