@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-    baseURL: 'localhost:3003',
+    baseURL: 'https://wesap-back-end-production.up.railway.app',
     timeout: 5000
   });
 
